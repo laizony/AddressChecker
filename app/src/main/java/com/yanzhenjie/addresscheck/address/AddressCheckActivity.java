@@ -59,6 +59,10 @@ public class AddressCheckActivity extends AppCompatActivity {
 
     AddressListAdapter mThreeListAdapter;
     List<City> mThreeList;
+    int mCurrentThreeSelect = -1;
+
+    AddressListAdapter mFourListAdapter;
+    List<City> mFourList;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -78,10 +82,12 @@ public class AddressCheckActivity extends AppCompatActivity {
         RecyclerView oneView = new RecyclerView(this);
         RecyclerView twoView = new RecyclerView(this);
         RecyclerView threeView = new RecyclerView(this);
+        RecyclerView fourView = new RecyclerView(this);
         List<RecyclerView> recyclerViewList = new ArrayList<>();
         recyclerViewList.add(oneView);
         recyclerViewList.add(twoView);
         recyclerViewList.add(threeView);
+        recyclerViewList.add(fourView);
         PagerViewAdapter<RecyclerView> pagerViewAdapter = new PagerViewAdapter<>(recyclerViewList);
         mViewPager.setAdapter(pagerViewAdapter);
         mTabLayout.setupWithViewPager(mViewPager);
@@ -101,6 +107,11 @@ public class AddressCheckActivity extends AppCompatActivity {
         threeView.setLayoutManager(new LinearLayoutManager(this));
         mThreeListAdapter = new AddressListAdapter(getLayoutInflater(), mDistrictItemClickListener);
         threeView.setAdapter(mThreeListAdapter);
+
+        fourView.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
+        fourView.setLayoutManager(new LinearLayoutManager(this));
+        mFourListAdapter = new AddressListAdapter(getLayoutInflater(), mStreetItemClickListener);
+        fourView.setAdapter(mFourListAdapter);
 
         RequestCityListTask requestCityTask = new RequestCityListTask(this, callback);
         requestCityTask.execute();
@@ -127,6 +138,12 @@ public class AddressCheckActivity extends AppCompatActivity {
                         return;
                     }
                     break;
+                }
+                case 3: {
+                    if (mFourList == null){
+                        mTabLayout.getTabAt(mCurrentPosition).select();
+                        return;
+                    }
                 }
             }
             this.mCurrentPosition = tab.getPosition();
@@ -174,7 +191,7 @@ public class AddressCheckActivity extends AppCompatActivity {
             City one = mOneList.get(mCurrentOneSelect);
             mTwoList = one.getCityList();
             if (mTwoList == null || mTwoList.size() == 0) { // 选定一级。
-                setResultFinish(one, null, null);
+                setResultFinish(one, null, null, null);
             } else {
                 // 更新二级的content和title。
                 mTwoListAdapter.notifyDataSetChanged(mTwoList);
@@ -212,7 +229,7 @@ public class AddressCheckActivity extends AppCompatActivity {
             City two = mTwoList.get(mCurrentTwoSelect);
             mThreeList = two.getCityList();
             if (mThreeList == null || mThreeList.size() == 0) { // 选定二级。
-                setResultFinish(mOneList.get(mCurrentOneSelect), two, null);
+                setResultFinish(mOneList.get(mCurrentOneSelect), two, null, null);
             } else {
                 mThreeListAdapter.notifyDataSetChanged(mThreeList);
                 mTabLayout.getTabAt(2).setText(two.getName());
@@ -227,20 +244,53 @@ public class AddressCheckActivity extends AppCompatActivity {
     private OnCompatItemClickListener mDistrictItemClickListener = new OnCompatItemClickListener() {
         @Override
         public void onItemClick(View view, int position) {
-            setResultFinish(mOneList.get(mCurrentOneSelect), mTwoList.get(mCurrentTwoSelect), mThreeList.get(position));
+            if (mCurrentThreeSelect == position) {
+                mViewPager.setCurrentItem(3, true);
+                return;
+            }
+
+            if (mCurrentThreeSelect != -1) {
+                mThreeList.get(mCurrentThreeSelect).setSelect(false);
+                mThreeListAdapter.notifyItemChanged(mCurrentThreeSelect);
+            }
+
+            mCurrentThreeSelect = position;
+            mThreeList.get(mCurrentThreeSelect).setSelect(true);
+            mThreeListAdapter.notifyItemChanged(mCurrentThreeSelect);
+            City three = mThreeList.get(mCurrentThreeSelect);
+            mFourList = three.getCityList();
+            if (mFourList == null || mFourList.size() == 0) { // 选定三级。
+                setResultFinish(mOneList.get(mCurrentOneSelect), mTwoList.get(mCurrentTwoSelect), three, null);
+            } else {
+                mFourListAdapter.notifyDataSetChanged(mFourList);
+                mTabLayout.getTabAt(3).setText(three.getName());
+                mViewPager.setCurrentItem(3, true);
+            }
         }
     };
 
     /**
+     * 街道item被点击。
+     */
+    private OnCompatItemClickListener mStreetItemClickListener = new OnCompatItemClickListener() {
+        @Override
+        public void onItemClick(View view, int position) {
+            setResultFinish(mOneList.get(mCurrentOneSelect), mTwoList.get(mCurrentTwoSelect), mThreeList.get(mCurrentThreeSelect),mFourList.get(position));
+        }
+    };
+
+
+    /**
      * 选中。
      */
-    private void setResultFinish(City province, City city, City district) {
+    private void setResultFinish(City province, City city, City district,City street) {
         ArrayList<City> cityArrayList = new ArrayList<>();
         cityArrayList.add(province);
         if (city != null)
             cityArrayList.add(city);
         if (district != null)
             cityArrayList.add(district);
+        if (street != null) cityArrayList.add(street);
 
         Intent intent = new Intent();
         intent.putParcelableArrayListExtra(KEY_OUTPUT_PROVINCE_CITY_DISTRICT, cityArrayList);

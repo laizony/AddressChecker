@@ -18,11 +18,13 @@ package com.yanzhenjie.addresscheck.address;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.yanzhenjie.loading.dialog.LoadingDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,7 +61,7 @@ public class RequestCityListTask extends AsyncTask<Void, Void, List<City>> {
     @Override
     protected List<City> doInBackground(Void... params) {
         try {
-            InputStream inputStream = mContext.getAssets().open("city_list.json");
+            InputStream inputStream = mContext.getAssets().open("district_4_ch.json");
             ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];
             int len;
@@ -71,7 +73,7 @@ public class RequestCityListTask extends AsyncTask<Void, Void, List<City>> {
             inputStream.close();
 
             String json = new String(arrayOutputStream.toByteArray());
-            return JSON.parseArray(json, City.class);
+            return new Gson().fromJson(json, new TypeToken<ArrayList<City>>(){}.getType());
         } catch (Exception e) {
             return Collections.emptyList();
         }

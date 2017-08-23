@@ -18,7 +18,7 @@ package com.yanzhenjie.addresscheck.address;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -31,19 +31,19 @@ public class City implements Parcelable {
     /**
      * id。
      */
-    @JSONField(name = "id")
+    @SerializedName("id")
     private String id;
 
     /**
      * 名称。
      */
-    @JSONField(name = "name")
+    @SerializedName("name")
     private String name;
 
     /**
      * 子项。
      */
-    @JSONField(name = "children")
+    @SerializedName("child")
     private List<City> mCityList;
 
     /**

@@ -5,6 +5,7 @@
 
 # 演示
 ![演示](./image/1.gif)
+![](./image/Screenshot_2017-08-23-11-07-38-481_com.yanzhenjie.png)
 
 # LICENSE
 ```text
